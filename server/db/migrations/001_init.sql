@@ -1,49 +1,51 @@
 -- Tabelas essenciais (clientes, pedidos, produtos, estoque, fornecedores, transportadoras, fiscais)
 
 create table if not exists customers (
-  id text primary key,
+  id uuid primary key default gen_random_uuid(),
   name text not null,
-  document text,
+  document text unique,
   address jsonb,
   representative_id text,
   created_at timestamptz default now()
 );
 
 create table if not exists orders (
-  id text primary key,
-  customer_id text references customers(id),
+  id uuid primary key default gen_random_uuid(),
+  customer_id uuid references customers(id) on delete set null,
   items jsonb not null default '[]',
   total numeric not null default 0,
   representative_id text,
   status text not null default 'aberto',
   created_at timestamptz default now()
 );
+create index if not exists idx_orders_customer_id on orders(customer_id);
 
 create table if not exists products (
-  id text primary key,
+  id uuid primary key default gen_random_uuid(),
   name text not null,
-  sku text,
+  sku text unique,
   price numeric not null default 0,
-  barcode text,
+  barcode text unique,
   media jsonb,
   representative_id text,
   created_at timestamptz default now()
 );
 
 create table if not exists inventory_movements (
-  id text primary key,
-  product_id text references products(id),
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid references products(id) on delete cascade,
   type text not null check (type in ('entrada','saida','ajuste')),
   quantity numeric not null,
   reason text,
   representative_id text,
   created_at timestamptz default now()
 );
+create index if not exists idx_inventory_movements_product_id on inventory_movements(product_id);
 
 create table if not exists suppliers (
-  id text primary key,
+  id uuid primary key default gen_random_uuid(),
   name text not null,
-  cnpj text,
+  cnpj text unique,
   ie text,
   address jsonb,
   representative_id text,
@@ -51,9 +53,9 @@ create table if not exists suppliers (
 );
 
 create table if not exists carriers (
-  id text primary key,
+  id uuid primary key default gen_random_uuid(),
   name text not null,
-  cnpj text,
+  cnpj text unique,
   ie text,
   rntrc text,
   address jsonb,
@@ -65,7 +67,7 @@ create table if not exists carriers (
 
 -- Fiscais (simplificados para desenvolvimento)
 create table if not exists nfe55 (
-  id text primary key,
+  id uuid primary key default gen_random_uuid(),
   numero text,
   serie text,
   emissao timestamptz,
@@ -83,7 +85,7 @@ create table if not exists nfe55 (
 );
 
 create table if not exists cte57 (
-  id text primary key,
+  id uuid primary key default gen_random_uuid(),
   numero text,
   serie text,
   data_hora_emissao timestamptz,

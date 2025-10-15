@@ -1,4 +1,6 @@
+// @ts-ignore
 import { Pool, QueryResult } from 'pg';
+
 
 const connectionString = process.env.DATABASE_URL;
 
